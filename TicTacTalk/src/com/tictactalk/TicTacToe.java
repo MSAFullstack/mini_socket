@@ -1,4 +1,4 @@
-package TicTacTalk;
+package com.tictactalk;
 
 import java.awt.BorderLayout;
 import java.awt.Button;
@@ -9,12 +9,14 @@ import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JFrame;
 
-public class TicTacToe extends Frame implements Runnable, ActionListener {
+public class TicTacToe extends JFrame implements Runnable, ActionListener {
 	Button[] btns;
 	String[] answer;
 	String s="";
 	public TicTacToe() {
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(new BorderLayout());
 		Panel cenP = new Panel(new GridLayout(3, 3));
 		btns = new Button[9];

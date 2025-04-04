@@ -8,6 +8,12 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Properties;
 import java.awt.FlowLayout;
 import java.awt.Font;
 
@@ -101,24 +107,78 @@ public class Index extends JFrame{
 
 		
         // 로그인 버튼 클릭시
+        
         signInButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                loading();
+            	String id = new String(idField.getText());
+                String password = new String(pwField.getPassword());
+                System.out.println(id+"<<>>"+password);
+                // 로그인 중복 체크 
+                
+                ArrayList<String> list=new ArrayList<>();
+        		String sql="select * from tttdb";
+        		
+//        		String sql="desc emp";
+        		String url="jdbc:oracle:thin:@172.30.1.71:1521:xe";
+        		Properties props=new Properties();
+        		props.setProperty("user", "scott");
+        		props.setProperty("password", "tiger");
+
+        		Connection conn=null;
+        		Statement stmt=null;
+        		java.sql.ResultSet rs=null;
+        		try {
+        			Class.forName("oracle.jdbc.driver.OracleDriver");
+        			conn=DriverManager.getConnection(url, props);
+        			stmt=conn.createStatement();
+        			rs=stmt.executeQuery(sql);
+        			id = new String(idField.getText());
+                    password = new String(pwField.getPassword());
+        			while(rs.next()) {
+        				
+//        				list.add(Integer.parseInt(rs.getObject(1).toString()));
+        				int i=1;
+        				list.add(rs.getObject(i).toString());
+        				list.add(rs.getObject(i).toString());
+        				i++;
+        				if(rs.getObject(1).equals(id) && rs.getObject(2).equals(password)) {
+        					System.out.print("완료!!!!!!!!!!!!!!!!!");
+        					loading();
+        				}else {
+        					System.out.println("아이디와 비밀번호 다시 확인");
+        				}
+//        				System.out.print(rs.getObject(2)+"\t");
+        			}
+        			for(String a : list) {
+        				System.out.println(a+"<");
+        			}
+        			System.out.println(list.toString());
+        		} catch (SQLException e1) {
+        			e1.printStackTrace();
+        		} catch (ClassNotFoundException e1) {
+        			e1.printStackTrace();
+        		} finally {
+        			try {
+        				if(rs!=null)rs.close();
+        				if(stmt!=null)stmt.close();
+        				if(conn!=null)conn.close();
+        			} catch (SQLException e1) {
+        				e1.printStackTrace();
+        			}
+        		}
+                
             }
         });
         
-     // 회원가입 버튼 클릭시
+      // 회원가입 버튼 클릭시
         signUpButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 signup();
             }
         });
-        
-        
-        
-        
+  
 		this.add(panel);
 		this.setVisible(true);
 		
