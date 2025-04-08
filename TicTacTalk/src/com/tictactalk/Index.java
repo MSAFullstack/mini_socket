@@ -23,6 +23,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
+import javax.swing.Timer;
 import javax.swing.border.LineBorder;
 
 public class Index extends JFrame{
@@ -139,6 +140,7 @@ public class Index extends JFrame{
 
 	    JLabel welcomeLabel = new JLabel("Player1님 환영합니다.", JLabel.CENTER);
 	    welcomeLabel.setAlignmentX(CENTER_ALIGNMENT);
+	    
 
 
 	    JLabel loadingLabel = new JLabel("플레이어를 찾는 중입니다...", JLabel.CENTER);
@@ -167,6 +169,20 @@ public class Index extends JFrame{
 	    loadingDialog.add(loadingbar);
 	    loadingDialog.add(Box.createVerticalStrut(10));
 	    loadingDialog.add(cancelButton);
+	    
+	    
+	    Timer timer = new Timer(1000, new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent evt) {
+	            loadingDialog.dispose();
+	            Game game = new Game();
+	            game.setVisible(true);
+	        }
+	    });
+	    timer.setRepeats(false);
+	    timer.start();
+
+	    
 
 	    loadingDialog.setVisible(true);
 	}
@@ -187,16 +203,16 @@ public class Index extends JFrame{
         // X 버튼
         JButton closeButton = new JButton("X");
         closeButton.setPreferredSize(new Dimension(40, 40));
-        closeButton.setBackground(null); // 배경 없애기
-        closeButton.setForeground(Color.BLACK); // 글자 색을 검정색으로 설정
+        closeButton.setBackground(null);
+        closeButton.setForeground(Color.BLACK);
         closeButton.setFont(new Font("Arial", Font.BOLD, 16));
-        closeButton.setBorder(BorderFactory.createEmptyBorder()); // 테두리 없애기
+        closeButton.setBorder(BorderFactory.createEmptyBorder());
         closeButton.setFocusable(false);
 
         closeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                signUpDialog.dispose();  // X 버튼 클릭 시 다이얼로그 종료
+                signUpDialog.dispose();
             }
         });
 
@@ -204,6 +220,7 @@ public class Index extends JFrame{
 
         // ID, PW 입력 영역
         JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
         inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
         inputPanel.setOpaque(false);
         inputPanel.setAlignmentX(JPanel.CENTER_ALIGNMENT);
@@ -216,6 +233,7 @@ public class Index extends JFrame{
         JLabel idLabel = new JLabel("ID");
         idLabel.setPreferredSize(new Dimension(60, 30));
         Round.RoundTextField idField = new Round.RoundTextField(20);
+        JLabel idinfoLabel = new JLabel("아이디 최소 4자 이상");
         idPanel.add(idLabel);
         idPanel.add(idField);
 
@@ -227,13 +245,17 @@ public class Index extends JFrame{
         JLabel pwLabel = new JLabel("PW");
         pwLabel.setPreferredSize(new Dimension(60, 30));
         Round.RoundPasswordField pwField = new Round.RoundPasswordField(20);
+        JLabel pwinfoLabel = new JLabel("아이디 최소 4자 이상");
+        
         pwPanel.add(pwLabel);
         pwPanel.add(pwField);
 
-
         inputPanel.add(idPanel);
+        inputPanel.add(idinfoLabel);
         inputPanel.add(pwPanel);
+        inputPanel.add(pwinfoLabel);
 
+         
         JButton signupButton = new JButton("회원가입");
         signupButton.setPreferredSize(new Dimension(150, 40));
         signupButton.setBackground(new Color(51, 153, 255));
