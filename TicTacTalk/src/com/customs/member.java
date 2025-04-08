@@ -14,7 +14,7 @@ public class member {
 		String sql="select * from tttdb";
 		
 //		String sql="desc emp";
-		String url="jdbc:oracle:thin:@172.30.1.71:1521:xe";
+		String url="jdbc:oracle:thin:@172.30.1.78:1521:xe";
 		Properties props=new Properties();
 		props.setProperty("user", "scott");
 		props.setProperty("password", "tiger");
