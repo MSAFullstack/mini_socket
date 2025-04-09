@@ -25,15 +25,15 @@ public class ConnectDb {
             Class.forName("oracle.jdbc.driver.OracleDriver");
             conn = DriverManager.getConnection(url, props);
             stmt = conn.createStatement();
-            sql = "select id,password,win,lose,draw,rating from TTTDB";
+            sql = "select id,password,win,draw,lose,rating from TTTDB";
             rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
                 List<String> list = new ArrayList<>();
                 list.add(rs.getString("password"));
                 list.add(rs.getString("win"));
-                list.add(rs.getString("lose"));
                 list.add(rs.getString("draw"));
+                list.add(rs.getString("lose"));
                 list.add(rs.getString("rating"));
                 map.put(rs.getString("id"), list);
             }
@@ -52,7 +52,6 @@ public class ConnectDb {
     }
 
     public static boolean login(String id, String password) {
-    	System.out.println("아이디 : " + id);
         if (map.containsKey(id)) {
             List<String> list = map.get(id);
             return list.get(0).equals(password);
@@ -72,7 +71,7 @@ public class ConnectDb {
                 Class.forName("oracle.jdbc.driver.OracleDriver");
                 conn = DriverManager.getConnection(url, props);
                 stmt = conn.createStatement();
-                sql = "insert into tttdb (id, password, win, lose, draw, rating) values ('" + id + "','" + password + "', 0, 0, 0, 1000)";
+                sql = "insert into TTTDB (id, password, win, draw, lose, rating) values ('" + id + "','" + password + "', 0, 0, 0, 1000)";
                 stmt.executeUpdate(sql);
                 System.out.println("회원가입 성공: " + id);
             } catch (ClassNotFoundException | SQLException e) {

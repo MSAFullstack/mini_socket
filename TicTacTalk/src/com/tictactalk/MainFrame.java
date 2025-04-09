@@ -5,8 +5,6 @@ import java.awt.CardLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import com.net.ConnectDb;
-
 public class MainFrame extends JFrame {
 	public static CardLayout cardLayout = new CardLayout();
 	public static JPanel cardPanel = new JPanel(cardLayout);
@@ -30,9 +28,7 @@ public class MainFrame extends JFrame {
 	}
 
 	public static void main(String[] args) {
-		//MainFrame ¿ªÇÒ ¼öÇà
-		ConnectDb cd = new ConnectDb();
-        cd.connectDb();
+		//MainFrame ì—­í•  ìˆ˜í–‰
 		new MainFrame();
 
 	}
