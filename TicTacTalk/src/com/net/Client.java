@@ -22,7 +22,7 @@ public class Client extends Thread {
     public static String playerId;
     public static String enemyID;
     private Socket sock;
-
+    static boolean isMyTurn;
     @Override
     public void run() {
         ConnectDb db = new ConnectDb();
@@ -75,7 +75,6 @@ public class Client extends Thread {
     private static void executeCommand(String msg) {
         // 'move' 메시지 처리 (자신의 턴에서 수를 두는 경우)
         if (msg.startsWith("move:") && !msg.contains(":")) { // 클라이언트에서 자신의 수를 보낼 때
-            System.out.println("너나");
             String[] parts = msg.split(":");
             int row = Integer.parseInt(parts[1]);
             int col = Integer.parseInt(parts[2]);
@@ -90,11 +89,19 @@ public class Client extends Thread {
             // 게임 시작 로직
             System.out.println("적의 id : " + enemyID);
             System.out.println("나의 id : " + playerId);
+            ConnectDb cdb = new ConnectDb();
+            cdb.connectDb();
+            //map에서 id에 맞는 레이팅값 들고오기 
+            int my_rating = Integer.valueOf(cdb.map.get(Client.playerId).get(4));
+            int enemy_rating = Integer.valueOf(cdb.map.get(Client.enemyID).get(4));
             if (playerId != null && enemyID != null) {
                 SwingUtilities.invokeLater(() -> {
                     // 내 턴 결정
-                    boolean isMyTurn = playerId.compareTo(enemyID) < 0;
-
+                	if (my_rating<enemy_rating){
+                		isMyTurn = true;
+                	}else {
+                		isMyTurn=false;
+                	}
                     // Game 객체 생성
                     Game game = new Game(isMyTurn) {
                         @Override

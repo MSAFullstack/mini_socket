@@ -71,7 +71,7 @@ public class ConnectDb {
                 Class.forName("oracle.jdbc.driver.OracleDriver");
                 conn = DriverManager.getConnection(url, props);
                 stmt = conn.createStatement();
-                sql = "insert into TTTDB (id, password, win, draw, lose, rating) values ('" + id + "','" + password + "', 0, 0, 0, 1000)";
+				sql = "insert into TTTDB (id, password, win, draw, lose, rating) values ('" + id + "','" + password + "', 0, 0, 0, 1000)";
                 stmt.executeUpdate(sql);
                 System.out.println("회원가입 성공: " + id);
             } catch (ClassNotFoundException | SQLException e) {

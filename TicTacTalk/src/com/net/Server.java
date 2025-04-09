@@ -41,7 +41,8 @@ public class Server {
             stmt.setString(1, id);
             int updated = stmt.executeUpdate();
             if (updated > 0) {
-                System.out.println("DB 업데이트 성공: " + id + " - " + result);
+            
+            	System.out.println("DB 업데이트 성공: " + id + " - " + result);
             } else {
                 System.out.println("DB 업데이트 실패: " + id);
             }
