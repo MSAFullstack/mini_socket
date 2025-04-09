@@ -24,17 +24,12 @@ public class Game extends JPanel implements ActionListener {
     private String mySymbol;
     private String enemySymbol;
     
-    
-    private int myrating;
-    private int mywins;
-    private int mydraws;
-    private int mylosses;
+    static java.util.List<String> myInfo;
+    private int myrating, mywins, mydraws, mylosses;
     private String myid = Client.playerId;
-
-    private int enemyrating;
-    private int enemywins;
-    private int enemydraws;
-    private int enemylosses;
+    
+    static java.util.List<String> enemyInfo;
+    private int enemyrating, enemywins, enemydraws, enemylosses;
     private String enemyid = Client.enemyID;
     
     
@@ -143,7 +138,9 @@ public class Game extends JPanel implements ActionListener {
     }
     
     private void fetchPlayerInfos() {
-        List<String> myInfo = ConnectDb.map.get(myid);
+    	ConnectDb cdb = new ConnectDb();
+    	cdb.connectDb();
+        myInfo = ConnectDb.map.get(myid);
         if (myInfo != null) {
             mywins = Integer.parseInt(myInfo.get(1));      // 승
             mydraws = Integer.parseInt(myInfo.get(2));     // 무
@@ -151,7 +148,7 @@ public class Game extends JPanel implements ActionListener {
             myrating = Integer.parseInt(myInfo.get(4));    // 평점
         }
 
-        List<String> enemyInfo = ConnectDb.map.get(enemyid);
+        enemyInfo = ConnectDb.map.get(enemyid);
         if (enemyInfo != null) {
             enemywins = Integer.parseInt(enemyInfo.get(1));
             enemydraws = Integer.parseInt(enemyInfo.get(2));
@@ -250,9 +247,11 @@ public class Game extends JPanel implements ActionListener {
     }
     public void updatePlayerPanels() {
         // player1 프로필 화면
+    	fetchPlayerInfos();
         Round.RoundPanel playerOnePanel = new Round.RoundPanel(Color.decode("#FFFACD"));
         playerOnePanel.setLayout(new BoxLayout(playerOnePanel, BoxLayout.Y_AXIS));
-        
+        System.out.println(myid+","+mywins+","+mydraws+","+mylosses+","+myrating);
+        System.out.println(enemyid+","+enemywins+","+enemydraws+","+enemylosses+","+enemyrating);
         JLabel user1Score = new JLabel(Integer.toString(myrating), JLabel.CENTER);
         user1Score.setAlignmentX(Component.CENTER_ALIGNMENT);
         
