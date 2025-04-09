@@ -17,14 +17,12 @@ public class MainFrame extends JFrame {
 		setResizable(false);
 		
 		cardPanel.add(new Index(), "Index");
-		cardPanel.add(new JPanel(), "Game");
 		
 		add(cardPanel);
 		setVisible(true);
 	}
 	
 	public static void switchTo(String name) {
-		System.out.println("[MainFrame] 화면 전환 시도: "+name);
 		cardLayout.show(cardPanel, name);
 	}
 

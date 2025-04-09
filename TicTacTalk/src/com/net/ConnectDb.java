@@ -7,8 +7,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 
-import com.tictactalk.MainFrame;
-
 public class ConnectDb {
     static String sql = "";
     static String url = "jdbc:oracle:thin:@localhost:1521:xe";
@@ -16,9 +14,9 @@ public class ConnectDb {
     static Statement stmt = null;
     static ResultSet rs = null;
 
-    public static Map<String, List<String>> member = new HashMap<>();
+    public static Map<String, List<String>> map = new HashMap<>();
 
-    public static void connectDb() {
+    public void connectDb() {
         Properties props = new Properties();
         props.setProperty("user", "scott");
         props.setProperty("password", "tiger");
@@ -37,9 +35,9 @@ public class ConnectDb {
                 list.add(rs.getString("draw"));
                 list.add(rs.getString("lose"));
                 list.add(rs.getString("rating"));
-                member.put(rs.getString("id"), list);
+                map.put(rs.getString("id"), list);
             }
-            System.out.println("[DB 로딩 완료] " + member);
+            System.out.println("[DB 로딩 완료] " + map);
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         } finally {
@@ -54,17 +52,9 @@ public class ConnectDb {
     }
 
     public static boolean login(String id, String password) {
-    	connectDb();
-        if (member.containsKey(id)) {
-            List<String> list = member.get(id);
-            if(list.get(0).equals(password)) {
-            	System.out.println("login success"+id);
-            	return true;
-            }else {
-            	System.out.println("password inconsistency");
-            }
-        }else {
-        	System.out.println("id does not exist");
+        if (map.containsKey(id)) {
+            List<String> list = map.get(id);
+            return list.get(0).equals(password);
         }
         return false;
     }
@@ -74,7 +64,7 @@ public class ConnectDb {
         props.setProperty("user", "scott");
         props.setProperty("password", "tiger");
 
-        if (member.containsKey(id)) {
+        if (map.containsKey(id)) {
             System.out.println("아이디 중복");
         } else {
             try {
@@ -100,6 +90,5 @@ public class ConnectDb {
     public static void main(String[] args) {
         ConnectDb cd = new ConnectDb();
         cd.connectDb();
-        new MainFrame();
     }
 }

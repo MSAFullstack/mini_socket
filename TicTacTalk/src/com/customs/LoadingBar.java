@@ -45,4 +45,3 @@ public class LoadingBar extends JPanel {
         repaint();
     }
 }
-
