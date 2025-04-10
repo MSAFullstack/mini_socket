@@ -21,35 +21,34 @@ public class Client extends Thread {
     private static Game gameInstance;
     public static String playerId;
     public static String enemyID;
-    private Socket sock;
-
+    private static Socket sock;
+    static boolean isMyTurn;
     @Override
     public void run() {
         ConnectDb db = new ConnectDb();
         db.connectDb();
-        System.out.println("[Client] DB connect ok. 전적 수:" + ConnectDb.map.size());
         
         try {
-            // �꽌踰� 二쇱냼 �꽕�젙
-            InetAddress addr = InetAddress.getByAddress(new byte[] { (byte) 172, 30, 1, 72 });
+            // 서버 주소 설정
+            InetAddress addr = InetAddress.getByAddress(new byte[] { (byte) 172, 30, 1, 2 });
             sock = new Socket(addr, 3000);
 
-            // 異쒕젰 �뒪�듃由� �꽕�젙
+            // 출력 스트림 설정
             OutputStream os = sock.getOutputStream();
             OutputStreamWriter osw = new OutputStreamWriter(os);
             bw = new BufferedWriter(osw);
             
-            // 濡쒓렇�씤 ID �쟾�넚
+            // 로그인 ID 전송
             bw.write("id:" + playerId);
             bw.newLine();
             bw.flush();
 
-            // �엯�젰 �뒪�듃由� �꽕�젙
+            // 입력 스트림 설정
             InputStream is = sock.getInputStream();
             InputStreamReader isr = new InputStreamReader(is);
             br = new BufferedReader(isr);
 
-            // �꽌踰꾨줈遺��꽣 硫붿떆吏�瑜� 諛쏄린 �쐞�븳 諛섎났臾�
+            // 서버로부터 메시지를 받기 위한 반복문
             String msg;
             while ((msg = br.readLine()) != null) {
                 executeCommand(msg);
@@ -63,39 +62,45 @@ public class Client extends Thread {
     private static void sendMoveToServer(int row, int col) {
         try {
             if (bw != null) {
-                // �꽌踰꾨줈 �궡 �닔 蹂대궡湲� (�삎�떇: move:row:col)
-                bw.write("move:" + row + ":" + col); // "move:row:col" �쟾�넚
+                // 서버로 내 수 보내기 (형식: move:row:col)
+                bw.write("move:" + row + ":" + col); // "move:row:col" 전송
                 bw.newLine();
-                bw.flush(); // �꽌踰꾨줈 �뜲�씠�꽣 �쟾�넚
+                bw.flush(); // 서버로 데이터 전송
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+    
     private static void executeCommand(String msg) {
-        // 'move' 硫붿떆吏� 泥섎━ (�옄�떊�쓽 �꽩�뿉�꽌 �닔瑜� �몢�뒗 寃쎌슦)
-        if (msg.startsWith("move:") && !msg.contains(":")) { // �겢�씪�씠�뼵�듃�뿉�꽌 �옄�떊�쓽 �닔瑜� 蹂대궪 �븣
-            System.out.println("너나");
+        // 'move' 메시지 처리 (자신의 턴에서 수를 두는 경우)
+        if (msg.startsWith("move:") && !msg.contains(":")) { // 클라이언트에서 자신의 수를 보낼 때
             String[] parts = msg.split(":");
             int row = Integer.parseInt(parts[1]);
             int col = Integer.parseInt(parts[2]);
             
-            sendMoveToServer(row, col); // �궡 �닔瑜� �꽌踰꾨줈 蹂대깂
+            sendMoveToServer(row, col); // 내 수를 서버로 보냄
             return;
         }
 
-        // 'call' 硫붿떆吏� 泥섎━: �긽��諛� ID瑜� �꽕�젙�븯怨� 寃뚯엫 �떆�옉
+        // 'call' 메시지 처리: 상대방 ID를 설정하고 게임 시작
         if (msg.startsWith("call:")) {
             enemyID = msg.substring(5, msg.length());
-            // 寃뚯엫 �떆�옉 濡쒖쭅
-            System.out.println("적의 id : " + enemyID);
-            System.out.println("나의 id : " + playerId);
+            // 게임 시작 로직
+            ConnectDb cdb = new ConnectDb();
+            cdb.connectDb();
+          //map에서 id에 맞는 레이팅값 들고오기 
+            int my_rating = Integer.valueOf(cdb.map.get(Client.playerId).get(4));
+            int enemy_rating = Integer.valueOf(cdb.map.get(Client.enemyID).get(4));
             if (playerId != null && enemyID != null) {
                 SwingUtilities.invokeLater(() -> {
-                    // �궡 �꽩 寃곗젙
-                    boolean isMyTurn = playerId.compareTo(enemyID) < 0;
-
-                    // Game 媛앹껜 �깮�꽦
+                	//내 턴 결정
+                	if(my_rating<enemy_rating) {
+                		isMyTurn = true;
+                	}else {
+                		isMyTurn=false;
+                	}
+                    // Game 객체 생성
                     Game game = new Game(isMyTurn) {
                         @Override
                         public void onGameEnd(String result) {
@@ -103,28 +108,28 @@ public class Client extends Thread {
                         }
                     };
 
-                    // 寃뚯엫 �뙣�꼸 �꽕�젙
+                    // 게임 패널 설정
                     MainFrame.cardPanel.add(game, "Game");
                     MainFrame.switchTo("Game");
                     Client.setGameInstance(game);
 
-                    // �뵆�젅�씠�뼱 �뙣�꼸 �뾽�뜲�씠�듃
+                    // 플레이어 패널 업데이트
                     game.updatePlayerPanels();
 
-                    // 濡쒕뵫 �떎�씠�뼹濡쒓렇 �떕湲�
+                    // 로딩 다이얼로그 닫기
                     if (Index.getInstance().loadingDialog != null) {
                         Index.getInstance().loadingDialog.dispose();
                     }
                 });
             } else {
-                // playerId �삉�뒗 enemyId媛� null�씪 寃쎌슦 泥섎━ (�삁: �삤瑜� 硫붿떆吏� 異쒕젰)
+                // playerId 또는 enemyId가 null일 경우 처리
                 System.err.println("Error: playerId or enemyId is null.");
             }
             return;
         }
 
-        // �긽��諛⑹쓽 �닔 泥섎━ (�긽��諛⑹씠 �닔瑜� �몢�뿀�쓣 �븣)
-        if (msg.startsWith("move:") && msg.contains(":")) { // �긽��諛⑹쓽 �닔瑜� 泥섎━
+        // 상대방의 수 처리 (상대방이 수를 두었을 때)
+        if (msg.startsWith("move:") && msg.contains(":")) { // 상대방의 수를 처리
             String[] parts = msg.split(":");
             int x = Integer.parseInt(parts[1]);
             int y = Integer.parseInt(parts[2]);
@@ -132,24 +137,24 @@ public class Client extends Thread {
             if (gameInstance != null) {
                 SwingUtilities.invokeLater(() -> {
                     if (gameInstance != null) {
-                        gameInstance.markOpponentMove(x, y);  // �긽��諛⑹쓽 �닔 諛섏쁺
+                        gameInstance.markOpponentMove(x, y);  // 상대방의 수 반영
                         System.out.println("[상대 수] " + x + "," + y);
                     }
                 });
             }
-            // 梨꾪똿 硫붿떆吏� 泥섎━
             return;
         }
     
+        // 채팅 메시지 처리
         if (gameInstance != null) {
         	gameInstance.appendChat(msg);
         }
     }
-    
+    //패널, 수 처리, 메시지 처리에서 쓰임
     public static void setGameInstance(Game game) {
     	gameInstance = game;
     }
-
+    //게임 결과 서버에 전송
     public static void sendGameResult(String result) {
         try {
             if (bw != null) {
@@ -162,8 +167,8 @@ public class Client extends Thread {
         }
     }
 
-    // �뒪�듃由쇨낵 �냼耳볦쓣 �떕�뒗 硫붿꽌�뱶
-    public void closeIO() {
+    // 스트림과 소켓을 닫는 메서드 -> 게임 종료 버튼 액션 시
+    public static void closeIO() {
     	try {
     		if(bw != null) bw.close();
     		if(br != null) br.close();
@@ -172,13 +177,7 @@ public class Client extends Thread {
     		e.printStackTrace();
     	}
     }
-
-    public static void main(String[] args) {
-        Client client = new Client();
-        playerId = com.tictactalk.Index.id; 
-        client.start();
-    }
-
+    //게임 채팅창에서 서버까지 전송
     public static void sendMessage(String string) {
         try {
             if (bw != null) {
@@ -189,5 +188,11 @@ public class Client extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    
+    public static void main(String[] args) {
+    	Client client = new Client();
+    	playerId = com.tictactalk.Index.id; 
+    	client.start();
     }
 }

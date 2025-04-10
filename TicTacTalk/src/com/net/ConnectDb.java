@@ -7,9 +7,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 
+//DB연결 클래스
 public class ConnectDb {
     static String sql = "";
-    static String url = "jdbc:oracle:thin:@localhost:1521:xe";
+    static String url = "jdbc:oracle:thin:@172.30.1.2:1521:xe";
     static Connection conn = null;
     static Statement stmt = null;
     static ResultSet rs = null;
@@ -37,7 +38,6 @@ public class ConnectDb {
                 list.add(rs.getString("rating"));
                 map.put(rs.getString("id"), list);
             }
-            System.out.println("[DB 로딩 완료] " + map);
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         } finally {
@@ -71,9 +71,8 @@ public class ConnectDb {
                 Class.forName("oracle.jdbc.driver.OracleDriver");
                 conn = DriverManager.getConnection(url, props);
                 stmt = conn.createStatement();
-                sql = "insert into TTTDB (id, password, win, draw, lose, rating) values ('" + id + "','" + password + "', 0, 0, 0, 1000)";
+				sql = "insert into TTTDB (id, password, win, draw, lose, rating) values ('" + id + "','" + password + "', 0, 0, 0, 1000)";
                 stmt.executeUpdate(sql);
-                System.out.println("회원가입 성공: " + id);
             } catch (ClassNotFoundException | SQLException e) {
                 e.printStackTrace();
             } finally {

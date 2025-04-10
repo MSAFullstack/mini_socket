@@ -1,63 +1,44 @@
 package com.tictactalk;
 
-import com.customs.*;
-import com.db.DBConnection;
-
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.GridLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.SQLException;
-import java.awt.FlowLayout;
-import java.awt.Font;
+import javax.swing.*;
+import com.customs.LoadingBar;
+import com.customs.Round;
+import com.net.Client;
+import com.net.ConnectDb;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JProgressBar;
-import javax.swing.JTextField;
-import javax.swing.Timer;
-import javax.swing.border.LineBorder;
+public class Index extends JPanel{
+	public static Index instance;
+    public static String id;
+    public JPanel panel = new JPanel();
+    public JDialog loadingDialog;
+    
+    //Î°úÍ∑∏Ïù∏ Ïãú Î°úÎî© Îã´Í∏∞
+    public static Index getInstance() {
+    	return instance;
+    }
+    
+    public Index() {
+    	instance = this;
+        setLayout(new BorderLayout());
 
-public class Index extends JFrame{
-	
-	public JPanel panel = new JPanel();
-		
-	
-	public Index() {
-		this.setTitle("TicTacTalk");
-		this.setSize(852,756); //(213, 189)*4
-		this.setLocationRelativeTo(null);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setResizable(false);
-		
-		panel.setBackground(Color.decode("#4ED59B"));
-		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-		
-		//∑Œ∞Ì øµø™
-		ImageIcon logoIcon = new ImageIcon("img/logo.png");
+        panel.setBackground(Color.decode("#4ED59B"));
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        // Í≤åÏûÑ Î°úÍ≥†
+        ImageIcon logoIcon = new ImageIcon("img/logo.png");
         JLabel logoLabel = new JLabel(logoIcon);
         logoLabel.setAlignmentX(CENTER_ALIGNMENT);
         panel.add(logoLabel);
-        
-        //ID, PW øµø™
+
+        // ID, PW ÏûÖÎ†• Ï∞Ω
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
         inputPanel.setOpaque(false);
         inputPanel.setAlignmentX(JPanel.CENTER_ALIGNMENT);
 
-        //ID
         JPanel idPanel = new JPanel();
         idPanel.setLayout(new BoxLayout(idPanel, BoxLayout.X_AXIS));
         idPanel.setOpaque(false);
@@ -68,7 +49,6 @@ public class Index extends JFrame{
         idPanel.add(idLabel);
         idPanel.add(idField);
 
-        //PW
         JPanel pwPanel = new JPanel();
         pwPanel.setLayout(new BoxLayout(pwPanel, BoxLayout.X_AXIS));
         pwPanel.setOpaque(false);
@@ -85,292 +65,246 @@ public class Index extends JFrame{
         inputPanel.add(idPanel);
         inputPanel.add(Box.createRigidArea(new Dimension(0, 30)));
         inputPanel.add(pwPanel);
-
         panel.add(inputPanel);
 
-        
-        //πˆ∆∞ øµø™
+        // Î≤ÑÌäº ÏòÅÏó≠
         JPanel buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
 
-        Round.RoundButton signInButton = new Round.RoundButton("∑Œ±◊¿Œ");
-        Round.RoundButton signUpButton = new Round.RoundButton("»∏ø¯∞°¿‘");
-        
-        Dimension buttonSize = new Dimension(160, 35); //(41,14)*4
+        Round.RoundButton signInButton = new Round.RoundButton("Î°úÍ∑∏Ïù∏");
+        Round.RoundButton signUpButton = new Round.RoundButton("ÌöåÏõêÍ∞ÄÏûÖ");
+
+        Dimension buttonSize = new Dimension(160, 35);
         signInButton.setPreferredSize(buttonSize);
         signUpButton.setPreferredSize(buttonSize);
 
         buttonPanel.add(signInButton);
-        buttonPanel.add(Box.createRigidArea(new Dimension(50, 0)));
+        inputPanel.add(Box.createRigidArea(new Dimension(50, 0)));
         buttonPanel.add(signUpButton);
-
+        
         panel.add(Box.createRigidArea(new Dimension(0, 30)));
         panel.add(buttonPanel);
 
-		
-        // ∑Œ±◊¿Œ πˆ∆∞ ≈¨∏ØΩ√
+        // Î°úÍ∑∏Ïù∏ Î≤ÑÌäº Ïù¥Î≤§Ìä∏
         signInButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                
-                String userId = idField.getText();
+                id = idField.getText();
                 String password = new String(pwField.getPassword());
-
-                try {
-                    DBConnection dbConnection = new DBConnection();
-                    if (dbConnection.Login(userId, password)) {
-                        loading(userId);
-                    } else {
-                        loginFailed();
-                    }
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(null, "DB ø¿∑˘∞° πﬂª˝«ﬂΩ¿¥œ¥Ÿ. ¥ŸΩ√ Ω√µµ«ÿ¡÷ººø‰.", "ø¿∑˘", JOptionPane.ERROR_MESSAGE);
+      
+                ConnectDb db = new ConnectDb();
+                db.connectDb();
+                if (ConnectDb.login(id, password)) {
+                    Client.playerId = id;
+                    Client client = new Client() {};
+                    client.start();
+                    loading();
+                } else {
+                	loginFailed();
                 }
             }
         });
 
-
-        
-     // »∏ø¯∞°¿‘ πˆ∆∞ ≈¨∏ØΩ√
+        // ÌöåÏõêÍ∞ÄÏûÖ Î≤ÑÌäº Ïù¥Î≤§Ìä∏
         signUpButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 signup();
             }
         });
-        
-        
-        
-        
-		this.add(panel);
-		this.setVisible(true);
-		
-	}
-	
-	
-	//∑Œµ˘√¢ ±∏«ˆ
-	public void loading(String userId) {
-		JDialog loadingDialog = new JDialog(this, "«√∑π¿ÃæÓ √£±‚", true);
-	    loadingDialog.setSize(700, 400); // (175,100)*4
-	    loadingDialog.setLocationRelativeTo(this);
-	    loadingDialog.setUndecorated(true);
-	    loadingDialog.setOpacity(0.9f);
-	    
 
-	    loadingDialog.setLayout(new BoxLayout(loadingDialog.getContentPane(), BoxLayout.Y_AXIS));
+        add(panel, BorderLayout.CENTER);
+    }
+    //Î°úÎî© Îã§Ïù¥ÏñºÎ°úÍ∑∏
+    public void loading() {
+        loadingDialog = new JDialog((JFrame)SwingUtilities.getWindowAncestor(this), "ÌîåÎ†àÏù¥Ïñ¥ Ï∞æÍ∏∞", true);
+        loadingDialog.setSize(700, 400);
+        loadingDialog.setLocationRelativeTo(this);
+        loadingDialog.setUndecorated(true);
+        loadingDialog.setOpacity(0.9f);
+        loadingDialog.setLayout(new BoxLayout(loadingDialog.getContentPane(), BoxLayout.Y_AXIS));
 
+        JLabel welcomeLabel = new JLabel(id + "Îãò ÌôòÏòÅÌï©ÎãàÎã§.", JLabel.CENTER);
+        welcomeLabel.setAlignmentX(CENTER_ALIGNMENT);
 
-	    JLabel welcomeLabel = new JLabel( userId +"¥‘ »Øøµ«’¥œ¥Ÿ.", JLabel.CENTER);
-	    welcomeLabel.setAlignmentX(CENTER_ALIGNMENT);
-	    
+        JLabel loadingLabel = new JLabel("ÌîåÎ†àÏù¥Ïñ¥Î•º Ï∞æÎäî Ï§ë...", JLabel.CENTER);
+        loadingLabel.setAlignmentX(CENTER_ALIGNMENT);
 
+        LoadingBar loadingbar = new LoadingBar();
+        loadingbar.setPreferredSize(new Dimension(200, 200));
+        loadingbar.setAlignmentX(CENTER_ALIGNMENT);
 
-	    JLabel loadingLabel = new JLabel("«√∑π¿ÃæÓ∏¶ √£¥¬ ¡ﬂ¿‘¥œ¥Ÿ...", JLabel.CENTER);
-	    loadingLabel.setAlignmentX(CENTER_ALIGNMENT);
+        Round.RoundButton cancelButton = new Round.RoundButton("Ï∑®ÏÜå");
+        cancelButton.setAlignmentX(CENTER_ALIGNMENT);
 
-	    
-	    LoadingBar loadingbar = new LoadingBar();
-	    loadingbar.setPreferredSize(new Dimension(200,200));
-	    loadingbar.setAlignmentX(CENTER_ALIGNMENT);
-	    
-	    
-	    Round.RoundButton cancelButton = new Round.RoundButton("√Îº“");
-	    cancelButton.setAlignmentX(CENTER_ALIGNMENT);
-	    
-	    cancelButton.addActionListener(new ActionListener() {
-	        @Override
-	        public void actionPerformed(ActionEvent e) {
-	            loadingDialog.dispose();
-	        }
-	    });
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadingDialog.dispose();
+            }
+        });
 
-	    loadingDialog.add(welcomeLabel);
-	    loadingDialog.add(Box.createVerticalStrut(10));
-	    loadingDialog.add(loadingLabel);
-	    loadingDialog.add(Box.createVerticalStrut(10));
-	    loadingDialog.add(loadingbar);
-	    loadingDialog.add(Box.createVerticalStrut(10));
-	    loadingDialog.add(cancelButton);
-	    
-	    
-	    Timer timer = new Timer(1000, new ActionListener() {
-	        @Override
-	        public void actionPerformed(ActionEvent evt) {
-	            loadingDialog.dispose();
-	            Game game = new Game();
-	            game.setVisible(true);
-	        }
-	    });
-	    timer.setRepeats(false);
-	    timer.start();
+        loadingDialog.add(welcomeLabel);
+        loadingDialog.add(Box.createVerticalStrut(10));
+        loadingDialog.add(loadingLabel);
+        loadingDialog.add(Box.createVerticalStrut(10));
+        loadingDialog.add(loadingbar);
+        loadingDialog.add(Box.createVerticalStrut(10));
+        loadingDialog.add(cancelButton);
+        loadingDialog.setVisible(true);
 
-	    
-
-	    loadingDialog.setVisible(true);
-	}
+    }
     
-	//»∏ø¯∞°¿‘ ±∏«ˆ
-	public void signup() {
-	    JDialog signUpDialog = new JDialog(this, "»∏ø¯∞°¿‘", true);
-	    signUpDialog.setSize(700, 400);
-	    signUpDialog.setLocationRelativeTo(this);
-	    signUpDialog.setUndecorated(true);
-	    signUpDialog.setOpacity(0.9f);
-	    signUpDialog.setLayout(new BorderLayout()); 
+    
+    //ÌöåÏõêÍ∞ÄÏûÖ Íµ¨ÌòÑ
+  	public void signup() {
+  	    JDialog signUpDialog = new JDialog((Frame)null, "ÌöåÏõêÍ∞ÄÏûÖ", true);
+  	    
+  	    signUpDialog.setSize(700, 400);
+  	    signUpDialog.setLocationRelativeTo(this);
+  	    signUpDialog.setUndecorated(true);
+  	    signUpDialog.setOpacity(0.9f);
+  	    signUpDialog.setLayout(new BorderLayout()); 
 
-	    // X πˆ∆∞
-	    JButton closeButton = new JButton("X");
-	    closeButton.setPreferredSize(new Dimension(45, 45));
-	    closeButton.setMaximumSize(new Dimension(45, 45));
-	    closeButton.setBackground(null);
-	    closeButton.setForeground(Color.BLACK);
-	    closeButton.setFont(new Font("Arial", Font.BOLD, 25));
-	    closeButton.setBorder(BorderFactory.createEmptyBorder());
-	    closeButton.setFocusable(false);
-	    
-	    closeButton.setContentAreaFilled(false);
-	    closeButton.setBorderPainted(false);
-	    closeButton.setFocusPainted(false);
+  	    // X Î≤ÑÌäº
+  	    JButton closeButton = new JButton("X");
+  	    closeButton.setPreferredSize(new Dimension(45, 45));
+  	    closeButton.setMaximumSize(new Dimension(45, 45));
+  	    closeButton.setBackground(null);
+  	    closeButton.setForeground(Color.BLACK);
+  	    closeButton.setFont(new Font("Arial", Font.BOLD, 25));
+  	    closeButton.setBorder(BorderFactory.createEmptyBorder());
+  	    closeButton.setFocusable(false);
+  	    
+  	    closeButton.setContentAreaFilled(false);
+  	    closeButton.setBorderPainted(false);
+  	    closeButton.setFocusPainted(false);
 
-	    closeButton.addActionListener(new ActionListener() {
-	        @Override
-	        public void actionPerformed(ActionEvent e) {
-	            signUpDialog.dispose();
-	        }
-	    });
+  	    closeButton.addActionListener(new ActionListener() {
+  	        @Override
+  	        public void actionPerformed(ActionEvent e) {
+  	            signUpDialog.dispose();
+  	        }
+  	    });
 
+  	    JPanel closePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+  	    closePanel.setOpaque(false);
+  	    closePanel.add(closeButton);
+  	    
+  	    JPanel mainPanel = new JPanel();
+  	    mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+  	    mainPanel.setOpaque(false);
+  	   
+  	    JPanel inputPanel = new JPanel();
+  	    inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
+  	    inputPanel.setOpaque(false);
+  	    inputPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-	    JPanel closePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-	    closePanel.setOpaque(false);
-	    closePanel.add(closeButton);
+  	    // ID
+  	    JPanel idFieldPanel = new JPanel();
+  	    idFieldPanel.setLayout(new BoxLayout(idFieldPanel, BoxLayout.X_AXIS));
+  	    idFieldPanel.setOpaque(false);
+  	    
+  	    idFieldPanel.setMaximumSize(new Dimension(800, 40));
+  	    JLabel idLabel = new JLabel("ID");
+  	    idLabel.setPreferredSize(new Dimension(60, 30));
+  	    Round.RoundTextField idField = new Round.RoundTextField(20);
+  	    idFieldPanel.add(idLabel);
+  	    idFieldPanel.add(idField);
+  	    
+  	    //ID Î¨∏ÏûêÏó¥ Ìå®ÌÑ¥
+  	    JLabel idInfoLabel = new JLabel("ÏïÑÏù¥Îîî ÏµúÏÜå 4Ïûê Ïù¥ÏÉÅ");
+  	    idInfoLabel.setForeground(Color.RED);
+  	    idInfoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-	    
-	    JPanel mainPanel = new JPanel();
-	    mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-	    mainPanel.setOpaque(false);
+  	    JPanel idPanel = new JPanel();
+  	    idPanel.setLayout(new BoxLayout(idPanel, BoxLayout.Y_AXIS));
+  	    idPanel.setOpaque(false);
+  	    idPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+  	    idPanel.setMaximumSize(new Dimension(400, 60));
 
-	   
-	    JPanel inputPanel = new JPanel();
-	    inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
-	    inputPanel.setOpaque(false);
-	    inputPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+  	    idPanel.add(idFieldPanel);
+  	    idPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+  	    idPanel.add(idInfoLabel);
 
-	    // ID
-	    JPanel idFieldPanel = new JPanel();
-	    idFieldPanel.setLayout(new BoxLayout(idFieldPanel, BoxLayout.X_AXIS));
-	    idFieldPanel.setOpaque(false);
-	    
-	    idFieldPanel.setMaximumSize(new Dimension(800, 40));
-	    JLabel idLabel = new JLabel("ID");
-	    idLabel.setPreferredSize(new Dimension(60, 30));
-	    Round.RoundTextField idField = new Round.RoundTextField(20);
-	    idFieldPanel.add(idLabel);
-	    idFieldPanel.add(idField);
+  	    // PW
+  	    JPanel pwFieldPanel = new JPanel();
+  	    pwFieldPanel.setLayout(new BoxLayout(pwFieldPanel, BoxLayout.X_AXIS));
+  	    pwFieldPanel.setOpaque(false);
+  	    
+  	    pwFieldPanel.setMaximumSize(new Dimension(800, 40));
+  	    JLabel pwLabel = new JLabel("PW");
+  	    pwLabel.setPreferredSize(new Dimension(60, 30));
+  	    Round.RoundPasswordField pwField = new Round.RoundPasswordField(20);
+  	    pwFieldPanel.add(pwLabel);
+  	    pwFieldPanel.add(pwField);
 
-	    JLabel idInfoLabel = new JLabel("æ∆¿Ãµ √÷º“ 4¿⁄ ¿ÃªÛ");
-	    idInfoLabel.setForeground(Color.RED);
-	    idInfoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+  	    //PW Î¨∏ÏûêÏó¥ Ìå®ÌÑ¥
+  	    JLabel pwInfoLabel = new JLabel("ÎπÑÎ∞ÄÎ≤àÌò∏Îäî ÏµúÏÜå 8Ïûê Ïù¥ÏÉÅ");
+  	    pwInfoLabel.setForeground(Color.RED);
+  	    pwInfoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-	    JPanel idPanel = new JPanel();
-	    idPanel.setLayout(new BoxLayout(idPanel, BoxLayout.Y_AXIS));
-	    idPanel.setOpaque(false);
-	    idPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-	    idPanel.setMaximumSize(new Dimension(400, 60));
+  	    JPanel pwPanel = new JPanel();
+  	    pwPanel.setLayout(new BoxLayout(pwPanel, BoxLayout.Y_AXIS));
+  	    pwPanel.setOpaque(false);
+  	    pwPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+  	    pwPanel.setMaximumSize(new Dimension(400, 60));
 
-	    idPanel.add(idFieldPanel);
-	    idPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-	    idPanel.add(idInfoLabel);
+  	    pwPanel.add(pwFieldPanel);
+  	    pwPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+  	    pwPanel.add(pwInfoLabel);
 
+  	    // ÌöåÏõêÍ∞ÄÏûÖ Î≤ÑÌäº
+  	    Round.RoundButton signupButton = new Round.RoundButton("ÌöåÏõêÍ∞ÄÏûÖ");
+  	    signupButton.setPreferredSize(new Dimension(150, 40));
+  	    signupButton.setMaximumSize(new Dimension(150, 40));
+  	    signupButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+  	    signupButton.setFocusPainted(false);
+  	    signupButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
+        // ÌöåÏõêÍ∞ÄÏûÖ Î≤ÑÌäº Ïù¥Î≤§Ìä∏
+  	  signupButton.addActionListener(new ActionListener() {
+  	      @Override
+  	      public void actionPerformed(ActionEvent e) {
+  	          String id = idField.getText();
+  	          String password = new String(pwField.getPassword());
 
-	    // PW
-	    JPanel pwFieldPanel = new JPanel();
-	    pwFieldPanel.setLayout(new BoxLayout(pwFieldPanel, BoxLayout.X_AXIS));
-	    pwFieldPanel.setOpaque(false);
-	    
-	    pwFieldPanel.setMaximumSize(new Dimension(800, 40));
-	    JLabel pwLabel = new JLabel("PW");
-	    pwLabel.setPreferredSize(new Dimension(60, 30));
-	    Round.RoundPasswordField pwField = new Round.RoundPasswordField(20);
-	    pwFieldPanel.add(pwLabel);
-	    pwFieldPanel.add(pwField);
+  	          idInfoLabel.setText("");
+  	          pwInfoLabel.setText("");
 
-	    JLabel pwInfoLabel = new JLabel("∫Òπ–π¯»£¥¬ √÷º“ 8¿⁄ ¿ÃªÛ");
-	    pwInfoLabel.setForeground(Color.RED);
-	    pwInfoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+  	          boolean hasError = false;
 
-	    JPanel pwPanel = new JPanel();
-	    pwPanel.setLayout(new BoxLayout(pwPanel, BoxLayout.Y_AXIS));
-	    pwPanel.setOpaque(false);
-	    pwPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-	    pwPanel.setMaximumSize(new Dimension(400, 60));
+  	          if (id.length() < 4) {
+  	              idInfoLabel.setText("ÏïÑÏù¥ÎîîÎäî 4Ïûê Ïù¥ÏÉÅÏù¥Ïñ¥Ïïº Ìï©ÎãàÎã§.");
+  	              hasError = true;
+  	          }
 
-	    pwPanel.add(pwFieldPanel);
-	    pwPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-	    pwPanel.add(pwInfoLabel);
+  	          if (password.length() < 8) {
+  	              pwInfoLabel.setText("ÎπÑÎ∞ÄÎ≤àÌò∏Îäî 8Ïûê Ïù¥ÏÉÅÏù¥Ïñ¥Ïïº Ìï©ÎãàÎã§.");
+  	              hasError = true;
+  	          }
 
-	    // »∏ø¯∞°¿‘ πˆ∆∞
-	    Round.RoundButton signupButton = new Round.RoundButton("»∏ø¯∞°¿‘");
-	    signupButton.setPreferredSize(new Dimension(150, 40));
-	    signupButton.setMaximumSize(new Dimension(150, 40));
-	    signupButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-	    signupButton.setFocusPainted(false);
-	    signupButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-	    
-	    //»∏ø¯∞°¿” √º≈©
-	    signupButton.addActionListener(new ActionListener() {
-	        @Override
-	        public void actionPerformed(ActionEvent e) {
-	            String id = idField.getText();
-	            String password = new String(pwField.getPassword());
-	            
-	            
-	            idInfoLabel.setText("");
-	            pwInfoLabel.setText("");
-	            
-	            boolean hasError = false; 
+  	          if (hasError) {
+  	              return;
+  	          }
 
-	            
-	            if (id.length() < 4) {
-	                idInfoLabel.setText("æ∆¿Ãµ¥¬ 4¿⁄ ¿ÃªÛ¿ÃæÓæﬂ «’¥œ¥Ÿ");
-	                hasError = true;
-	            }
+  	          try {
+  	              if (com.net.ConnectDb.map.containsKey(id)) {
+  	                  idInfoLabel.setText("Ïù¥ÎØ∏ Ï°¥Ïû¨ÌïòÎäî ÏïÑÏù¥ÎîîÏûÖÎãàÎã§.");
+  	                  return;
+  	              }
 
-	            
-	            if (password.length() < 8) {
-	                pwInfoLabel.setText("∫Òπ–π¯»£¥¬ 8¿⁄ ¿ÃªÛ¿ÃæÓæﬂ «’¥œ¥Ÿ");
-	                hasError = true;
-	            }
+  	              com.net.ConnectDb.signup(id, password);
+  	              System.out.println("ÌöåÏõêÍ∞ÄÏûÖ ÏÑ±Í≥µ: ID = " + id + ", PW = " + password);
+  	              signUpDialog.dispose();
 
-	            
-	            if (hasError) {
-	                return;
-	            }
+  	          } catch (Exception ex) {
+  	              ex.printStackTrace();
+  	          }
+  	      }
+  	  });
 
-	            
-	            DBConnection dbConnection = new DBConnection();
-
-	            try {
-	                
-	                if (dbConnection.doesUserIdExist(id)) {
-	                    idInfoLabel.setText("¿ÃπÃ ¡∏¿Á«œ¥¬ æ∆¿Ãµ¿‘¥œ¥Ÿ.");
-	                    return;
-	                }
-
-	                
-	                dbConnection.saveUser(id, password);
-	                System.out.println("»∏ø¯∞°¿‘ º∫∞¯: ID = " + id + ", PW = " + password);
-	                signUpDialog.dispose();
-	            } catch (SQLException ex) {
-	                ex.printStackTrace();
-	            }
-	        }
-	    });
-
-	    
-
-	    inputPanel.add(idPanel);
+        inputPanel.add(idPanel);
 	    inputPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 	    inputPanel.add(pwPanel);
 	    inputPanel.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -380,35 +314,32 @@ public class Index extends JFrame{
 	    mainPanel.add(inputPanel);
 	    mainPanel.add(Box.createVerticalGlue());
 
-	   
 	    signUpDialog.add(closePanel, BorderLayout.NORTH);
 	    signUpDialog.add(mainPanel, BorderLayout.CENTER);
 
 	    signUpDialog.setVisible(true);
 	}
 	
-	// ∑Œ±◊¿Œ Ω«∆– √¢ ±∏«ˆ
+	// Î°úÍ∑∏Ïù∏ Ïã§Ìå® Ï∞Ω Íµ¨ÌòÑ
 	public void loginFailed() {
-	    JDialog loginFailedDialog = new JDialog(this, "∑Œ±◊¿Œ Ω«∆–", true);
+		JDialog loginFailedDialog = new JDialog((Frame) null, "Î°úÍ∑∏Ïù∏ Ïã§Ìå®", true);
 	    loginFailedDialog.setSize(700, 400);
 	    loginFailedDialog.setLocationRelativeTo(this);
 	    loginFailedDialog.setUndecorated(true);
 	    loginFailedDialog.setOpacity(0.9f);
 	    loginFailedDialog.setLayout(new BorderLayout());
 
-	    
 	    JPanel mainPanel = new JPanel();
 	    mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 	    mainPanel.setOpaque(false);
 
-	    
-	    JLabel failMessageLabel = new JLabel("æ∆¿Ãµ ∂«¥¬ ∫Òπ–π¯»£∞° ∏¬¡ˆ æ Ω¿¥œ¥Ÿ.", JLabel.CENTER);
+	    JLabel failMessageLabel = new JLabel("ÏïÑÏù¥Îîî ÎòêÎäî ÎπÑÎ∞ÄÎ≤àÌò∏Í∞Ä ÎßûÏßÄ ÏïäÏäµÎãàÎã§.", JLabel.CENTER);
 	    failMessageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-	    JLabel retryMessageLabel = new JLabel("¥ŸΩ√ »Æ¿Œ«ÿ¡÷ººø‰", JLabel.CENTER);
+	    JLabel retryMessageLabel = new JLabel("Îã§Ïãú ÌôïÏù∏Ìï¥Ï£ºÏÑ∏Ïöî", JLabel.CENTER);
 	    retryMessageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-	    Round.RoundButton okButton = new Round.RoundButton("»Æ¿Œ");
+	    Round.RoundButton okButton = new Round.RoundButton("ÌôïÏù∏");
 	    okButton.setPreferredSize(new Dimension(150, 40));
 	    okButton.setMaximumSize(new Dimension(150, 40));
 	    okButton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -420,7 +351,6 @@ public class Index extends JFrame{
 	            loginFailedDialog.dispose();
 	        }
 	    });
-
 	    
 	    mainPanel.add(Box.createVerticalGlue());
 	    mainPanel.add(failMessageLabel);
@@ -434,10 +364,5 @@ public class Index extends JFrame{
 
 	    loginFailedDialog.setVisible(true);
 	}
-
-
-
-
 	
-
 }
