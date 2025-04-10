@@ -266,6 +266,9 @@ public class Index extends JPanel{
   	  signupButton.addActionListener(new ActionListener() {
   	      @Override
   	      public void actionPerformed(ActionEvent e) {
+  	    	  ConnectDb cd = new ConnectDb();
+  	    	  cd.connectDb();
+  	    	  
   	          String id = idField.getText();
   	          String password = new String(pwField.getPassword());
 

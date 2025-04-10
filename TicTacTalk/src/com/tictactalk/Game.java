@@ -26,7 +26,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -34,8 +33,6 @@ import javax.swing.Timer;
 import com.customs.Round;
 import com.net.Client;
 import com.net.ConnectDb;
-import com.net.Server;
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.REUtil;
 
 public class Game extends JPanel implements ActionListener {
 	private JButton[][] buttons = new JButton[3][3];
@@ -175,6 +172,8 @@ public class Game extends JPanel implements ActionListener {
 					// win,lose,draw 결과 없이 시간 끝나면 draw
 					onGameEnd("draw");
 					cntTimer.stop();
+					disableBoard();
+					endGame("무승부");
 				}
 
 			}
@@ -507,6 +506,7 @@ public class Game extends JPanel implements ActionListener {
 		replayButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				Client.sendMessage("replay");
 				endGameDialog.dispose();
 				Index index = new Index();
 				MainFrame.cardPanel.add(index, "Index");
@@ -518,7 +518,12 @@ public class Game extends JPanel implements ActionListener {
 		endButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Client.closeIO();
+				try {
+					Client.closeIO();
+					Thread.sleep(100);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
 				System.exit(0);
 			}
 		});
