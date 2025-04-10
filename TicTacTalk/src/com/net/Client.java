@@ -21,17 +21,16 @@ public class Client extends Thread {
     private static Game gameInstance;
     public static String playerId;
     public static String enemyID;
-    private Socket sock;
+    private static Socket sock;
     static boolean isMyTurn;
     @Override
     public void run() {
         ConnectDb db = new ConnectDb();
         db.connectDb();
-        System.out.println("[Client] DB connect ok. 전적 수:" + ConnectDb.map.size());
         
         try {
             // 서버 주소 설정
-            InetAddress addr = InetAddress.getByAddress(new byte[] { (byte) 172, 30, 1, 13 });
+            InetAddress addr = InetAddress.getByAddress(new byte[] { (byte) 172, 30, 1, 2 });
             sock = new Socket(addr, 3000);
 
             // 출력 스트림 설정
@@ -72,6 +71,7 @@ public class Client extends Thread {
             e.printStackTrace();
         }
     }
+    
     private static void executeCommand(String msg) {
         // 'move' 메시지 처리 (자신의 턴에서 수를 두는 경우)
         if (msg.startsWith("move:") && !msg.contains(":")) { // 클라이언트에서 자신의 수를 보낼 때
@@ -87,17 +87,15 @@ public class Client extends Thread {
         if (msg.startsWith("call:")) {
             enemyID = msg.substring(5, msg.length());
             // 게임 시작 로직
-            System.out.println("적의 id : " + enemyID);
-            System.out.println("나의 id : " + playerId);
             ConnectDb cdb = new ConnectDb();
             cdb.connectDb();
-            //map에서 id에 맞는 레이팅값 들고오기 
+          //map에서 id에 맞는 레이팅값 들고오기 
             int my_rating = Integer.valueOf(cdb.map.get(Client.playerId).get(4));
             int enemy_rating = Integer.valueOf(cdb.map.get(Client.enemyID).get(4));
             if (playerId != null && enemyID != null) {
                 SwingUtilities.invokeLater(() -> {
-                    // 내 턴 결정
-                	if (my_rating<enemy_rating){
+                	//내 턴 결정
+                	if(my_rating<enemy_rating) {
                 		isMyTurn = true;
                 	}else {
                 		isMyTurn=false;
@@ -124,7 +122,7 @@ public class Client extends Thread {
                     }
                 });
             } else {
-                // playerId 또는 enemyId가 null일 경우 처리 (예: 오류 메시지 출력)
+                // playerId 또는 enemyId가 null일 경우 처리
                 System.err.println("Error: playerId or enemyId is null.");
             }
             return;
@@ -144,19 +142,19 @@ public class Client extends Thread {
                     }
                 });
             }
-            // 채팅 메시지 처리
             return;
         }
     
+        // 채팅 메시지 처리
         if (gameInstance != null) {
         	gameInstance.appendChat(msg);
         }
     }
-    
+    //패널, 수 처리, 메시지 처리에서 쓰임
     public static void setGameInstance(Game game) {
     	gameInstance = game;
     }
-
+    //게임 결과 서버에 전송
     public static void sendGameResult(String result) {
         try {
             if (bw != null) {
@@ -169,8 +167,8 @@ public class Client extends Thread {
         }
     }
 
-    // 스트림과 소켓을 닫는 메서드
-    public void closeIO() {
+    // 스트림과 소켓을 닫는 메서드 -> 게임 종료 버튼 액션 시
+    public static void closeIO() {
     	try {
     		if(bw != null) bw.close();
     		if(br != null) br.close();
@@ -179,13 +177,7 @@ public class Client extends Thread {
     		e.printStackTrace();
     	}
     }
-
-    public static void main(String[] args) {
-        Client client = new Client();
-        playerId = com.tictactalk.Index.id; 
-        client.start();
-    }
-
+    //게임 채팅창에서 서버까지 전송
     public static void sendMessage(String string) {
         try {
             if (bw != null) {
@@ -196,5 +188,11 @@ public class Client extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    
+    public static void main(String[] args) {
+    	Client client = new Client();
+    	playerId = com.tictactalk.Index.id; 
+    	client.start();
     }
 }

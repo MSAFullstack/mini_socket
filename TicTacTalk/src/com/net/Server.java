@@ -11,7 +11,6 @@ import java.util.*;
 
 public class Server {
     static ServerSocket serverSocket;
-
     static List<BufferedWriter> chat = new ArrayList<>();
     static Map<String, BufferedWriter> userMap = new HashMap<>();
     static Map<String, String> enemyMap = new HashMap<>();
@@ -19,35 +18,50 @@ public class Server {
     static Map<Socket, String> playerIds = new HashMap<>();
     static Queue<Socket> waitingList = new LinkedList<>();
     static Set<Socket> activePlayers = new HashSet<>(); // Active players tracking
-
+    
     private static void processGameResult(String id, String result) {
         System.out.println(id + "-" + result);
-        String url = "jdbc:oracle:thin:@localhost:1521:xe";
+        String url = "jdbc:oracle:thin:@172.30.1.2:1521:xe";
         String user = "scott";
         String password = "tiger";
-
-        List<String> validResults = Arrays.asList("win", "draw", "lose");
-        if (!validResults.contains(result)) {
-            System.out.println("[유효하지 않음] 결과 값이 올바르지 않음: " + result);
-            return;
-        }
-
-        String sql = "UPDATE TTTDB SET " + result + " = " + result + " + 1 WHERE id=?";
-
+        
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
             Connection conn = DriverManager.getConnection(url, user, password);
+            //결과에 따른 DB 업데이트
+            //1. 승자/패자/무승부 카운트 업데이트
+            String sql = "UPDATE TTTDB SET " + result + " = " + result + " + 1 WHERE id=?";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, id);
-            int updated = stmt.executeUpdate();
-            if (updated > 0) {
-            
-            	System.out.println("DB 업데이트 성공: " + id + " - " + result);
-            } else {
-                System.out.println("DB 업데이트 실패: " + id);
+            stmt.executeUpdate();
+
+            // 2. rating 업데이트
+            String ratingSql = "";
+            switch (result) {
+                case "win":
+                    // 승자 +30, 패자 -20
+                    ratingSql = "UPDATE TTTDB SET rating = rating + 30 WHERE id = ?";
+                    PreparedStatement winStmt = conn.prepareStatement(ratingSql);
+                    winStmt.setString(1, id);
+                    winStmt.executeUpdate();
+                    break;
+                case "lose":
+                    // 패자 -20, 승자 +30
+                    ratingSql = "UPDATE TTTDB SET rating = rating - 20 WHERE id = ?";
+                    PreparedStatement loseStmt2 = conn.prepareStatement(ratingSql);
+                    loseStmt2.setString(1, id);
+                    loseStmt2.executeUpdate();
+                    break;
+                case "draw":
+                    String drawSql = "UPDATE TTTDB SET draw = draw + 1 WHERE id = ?";
+                    PreparedStatement drawStmt1 = conn.prepareStatement(drawSql);
+                    drawStmt1.setString(1, id);
+                    drawStmt1.executeUpdate();
+                    break;
             }
+            stmt.close();
+            conn.close();
         } catch (ClassNotFoundException | SQLException e) {
-            System.out.println("[DB 오류] " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -55,7 +69,6 @@ public class Server {
     public static void main(String[] args) {
         try {
             serverSocket = new ServerSocket(3000);
-            System.out.println("[서버] 서버 시작");
 
             while (true) {
                 Socket sock = serverSocket.accept();
@@ -65,11 +78,13 @@ public class Server {
             e.printStackTrace();
         }
     }
-
+    
     private static void handleClient(Socket sock) {
+    	BufferedReader br = null;
+    	BufferedWriter bw = null;
         try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
+            br = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+            bw = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
 
             String idLine = br.readLine();
             String id = idLine.substring(idLine.indexOf(":") + 1);
@@ -80,7 +95,6 @@ public class Server {
 
             // 클라이언트가 게임 대기 중일 때 대기 리스트에 추가
             waitingList.add(sock);
-            System.out.println("[나] " + id);
 
             // 2명 이상 접속 시 게임 시작 사인 'call' 보내기
             if (waitingList.size() >= 2) {
@@ -112,8 +126,7 @@ public class Server {
             String msg;
             while ((msg = br.readLine()) != null) {
                 String senderId = playerIds.get(sock);
-                System.out.println("[" + senderId + "] " + msg);
-
+                //게임 진행(좌표) 처리
                 if (msg.startsWith("move:")) {
                     // Validate the move message
                     if (isValidMove(msg)) {
@@ -129,7 +142,7 @@ public class Server {
                     }
                     continue;
                 }
-
+                //게임 결과 처리
                 if (msg.startsWith("result:")) {
                     String[] parts = msg.split(":");
                     if (parts.length == 2) {
@@ -154,6 +167,8 @@ public class Server {
                 sock = socketMap.get(playerIds.get(sock));
                 if (sock != null) {
                     chat.remove(sock);
+                    br.close();
+                    bw.close();
                     sock.close();
                     // 게임이 끝난 후 대기 리스트에 다시 추가할 수 있도록 처리
                     if (!activePlayers.contains(sock)) {
@@ -167,25 +182,24 @@ public class Server {
     }
 
     private static boolean isValidMove(String moveMessage) {
-        // Validate move message format: move:row:col
+        // moveMessage 유효 형식 확인, 포맷-> move:row:col
         String[] parts = moveMessage.split(":");
         if (parts.length != 3) {
-            return false; // Not in the format of "move:row:col"
+            return false; //move:row:col 형식 아닌 경우
         }
         
         try {
             int row = Integer.parseInt(parts[1]);
             int col = Integer.parseInt(parts[2]);
             
-            // Check if the row and column are within valid bounds (0-2 for a 3x3 grid)
+            // 행열 유효 확인
             if (row >= 0 && row <= 2 && col >= 0 && col <= 2) {
-                return true; // Valid move
+                return true; // 
             }
         } catch (NumberFormatException e) {
-            // If parsing fails, the message is invalid
             return false;
         }
 
-        return false; // Invalid move if row/col are out of bounds
+        return false; // 행열 범위 벗어남
     }
 }

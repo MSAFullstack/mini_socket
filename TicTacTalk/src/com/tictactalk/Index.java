@@ -15,6 +15,7 @@ public class Index extends JPanel{
     public JPanel panel = new JPanel();
     public JDialog loadingDialog;
     
+    //로그인 시 로딩 닫기
     public static Index getInstance() {
     	return instance;
     }
@@ -26,13 +27,13 @@ public class Index extends JPanel{
         panel.setBackground(Color.decode("#4ED59B"));
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        // 로고
+        // 게임 로고
         ImageIcon logoIcon = new ImageIcon("img/logo.png");
         JLabel logoLabel = new JLabel(logoIcon);
         logoLabel.setAlignmentX(CENTER_ALIGNMENT);
         panel.add(logoLabel);
 
-        // ID, PW 입력
+        // ID, PW 입력 창
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
         inputPanel.setOpaque(false);
@@ -95,19 +96,7 @@ public class Index extends JPanel{
                 db.connectDb();
                 if (ConnectDb.login(id, password)) {
                     Client.playerId = id;
-                    Client client = new Client() {
-                    	@Override
-    					public void run() {
-    							super.run();
-    							//call 수신 후 loading dialog 닫고 화면 전환
-    							if(loadingDialog !=null) {
-    								SwingUtilities.invokeLater(() -> {
-    									loadingDialog.dispose();
-    									MainFrame.switchTo("Game");
-    								});
-    							}
-    					};
-                    };
+                    Client client = new Client() {};
                     client.start();
                     loading();
                 } else {
@@ -126,7 +115,7 @@ public class Index extends JPanel{
 
         add(panel, BorderLayout.CENTER);
     }
-
+    //로딩 다이얼로그
     public void loading() {
         loadingDialog = new JDialog((JFrame)SwingUtilities.getWindowAncestor(this), "플레이어 찾기", true);
         loadingDialog.setSize(700, 400);
@@ -138,7 +127,7 @@ public class Index extends JPanel{
         JLabel welcomeLabel = new JLabel(id + "님 환영합니다.", JLabel.CENTER);
         welcomeLabel.setAlignmentX(CENTER_ALIGNMENT);
 
-        JLabel loadingLabel = new JLabel("플레이어를 찾는 중입니다...", JLabel.CENTER);
+        JLabel loadingLabel = new JLabel("플레이어를 찾는 중...", JLabel.CENTER);
         loadingLabel.setAlignmentX(CENTER_ALIGNMENT);
 
         LoadingBar loadingbar = new LoadingBar();
@@ -198,16 +187,13 @@ public class Index extends JPanel{
   	        }
   	    });
 
-
   	    JPanel closePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
   	    closePanel.setOpaque(false);
   	    closePanel.add(closeButton);
-
   	    
   	    JPanel mainPanel = new JPanel();
   	    mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
   	    mainPanel.setOpaque(false);
-
   	   
   	    JPanel inputPanel = new JPanel();
   	    inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
@@ -225,7 +211,8 @@ public class Index extends JPanel{
   	    Round.RoundTextField idField = new Round.RoundTextField(20);
   	    idFieldPanel.add(idLabel);
   	    idFieldPanel.add(idField);
-
+  	    
+  	    //ID 문자열 패턴
   	    JLabel idInfoLabel = new JLabel("아이디 최소 4자 이상");
   	    idInfoLabel.setForeground(Color.RED);
   	    idInfoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -240,8 +227,6 @@ public class Index extends JPanel{
   	    idPanel.add(Box.createRigidArea(new Dimension(0, 5)));
   	    idPanel.add(idInfoLabel);
 
-
-
   	    // PW
   	    JPanel pwFieldPanel = new JPanel();
   	    pwFieldPanel.setLayout(new BoxLayout(pwFieldPanel, BoxLayout.X_AXIS));
@@ -254,6 +239,7 @@ public class Index extends JPanel{
   	    pwFieldPanel.add(pwLabel);
   	    pwFieldPanel.add(pwField);
 
+  	    //PW 문자열 패턴
   	    JLabel pwInfoLabel = new JLabel("비밀번호는 최소 8자 이상");
   	    pwInfoLabel.setForeground(Color.RED);
   	    pwInfoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -276,7 +262,7 @@ public class Index extends JPanel{
   	    signupButton.setFocusPainted(false);
   	    signupButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
-        //회원가입 클릭시
+        // 회원가입 버튼 이벤트
   	  signupButton.addActionListener(new ActionListener() {
   	      @Override
   	      public void actionPerformed(ActionEvent e) {
@@ -289,20 +275,18 @@ public class Index extends JPanel{
   	          boolean hasError = false;
 
   	          if (id.length() < 4) {
-  	              idInfoLabel.setText("아이디는 4자 이상이어야 합니다");
+  	              idInfoLabel.setText("아이디는 4자 이상이어야 합니다.");
   	              hasError = true;
   	          }
 
-
   	          if (password.length() < 8) {
-  	              pwInfoLabel.setText("비밀번호는 8자 이상이어야 합니다");
+  	              pwInfoLabel.setText("비밀번호는 8자 이상이어야 합니다.");
   	              hasError = true;
   	          }
 
   	          if (hasError) {
   	              return;
   	          }
-
 
   	          try {
   	              if (com.net.ConnectDb.map.containsKey(id)) {
@@ -320,7 +304,6 @@ public class Index extends JPanel{
   	      }
   	  });
 
-
         inputPanel.add(idPanel);
 	    inputPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 	    inputPanel.add(pwPanel);
@@ -331,13 +314,10 @@ public class Index extends JPanel{
 	    mainPanel.add(inputPanel);
 	    mainPanel.add(Box.createVerticalGlue());
 
-	   
 	    signUpDialog.add(closePanel, BorderLayout.NORTH);
 	    signUpDialog.add(mainPanel, BorderLayout.CENTER);
 
 	    signUpDialog.setVisible(true);
-
-        
 	}
 	
 	// 로그인 실패 창 구현
@@ -349,12 +329,10 @@ public class Index extends JPanel{
 	    loginFailedDialog.setOpacity(0.9f);
 	    loginFailedDialog.setLayout(new BorderLayout());
 
-	    
 	    JPanel mainPanel = new JPanel();
 	    mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 	    mainPanel.setOpaque(false);
 
-	    
 	    JLabel failMessageLabel = new JLabel("아이디 또는 비밀번호가 맞지 않습니다.", JLabel.CENTER);
 	    failMessageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -373,7 +351,6 @@ public class Index extends JPanel{
 	            loginFailedDialog.dispose();
 	        }
 	    });
-
 	    
 	    mainPanel.add(Box.createVerticalGlue());
 	    mainPanel.add(failMessageLabel);
