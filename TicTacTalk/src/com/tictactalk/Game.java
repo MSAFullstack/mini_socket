@@ -432,7 +432,7 @@ public class Game extends JPanel implements ActionListener {
 
 		JLabel user2Record = new JLabel(enemywins + "승" + enemydraws + "무" + enemylosses + "패", JLabel.CENTER);
 		user2Record.setAlignmentX(Component.CENTER_ALIGNMENT);
-		int enemytotal = mywins + mydraws + mylosses;
+		int enemytotal = enemywins + enemydraws + enemylosses;
 		int enemyrate = 0;
 		if (enemytotal > 0) {
 			enemyrate = (int) (((double) enemywins / (enemywins + enemydraws + enemylosses)) * 100);
@@ -506,7 +506,6 @@ public class Game extends JPanel implements ActionListener {
 		replayButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Client.sendMessage("replay");
 				endGameDialog.dispose();
 				Index index = new Index();
 				MainFrame.cardPanel.add(index, "Index");
@@ -518,13 +517,7 @@ public class Game extends JPanel implements ActionListener {
 		endButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try {
-					Client.closeIO();
-					Thread.sleep(100);
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
-				System.exit(0);
+				Client.closeIO();
 			}
 		});
 

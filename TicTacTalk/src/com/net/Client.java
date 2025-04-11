@@ -5,6 +5,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -35,20 +36,15 @@ public class Client extends Thread {
 			sock = new Socket(addr, 3000);
 
 			// 출력 스트림 설정
-			OutputStream os = sock.getOutputStream();
-			OutputStreamWriter osw = new OutputStreamWriter(os);
-			bw = new BufferedWriter(osw);
-
+			
+			bw = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream(),StandardCharsets.UTF_8));
 			// 로그인 ID 전송
 			bw.write("id:" + playerId);
 			bw.newLine();
 			bw.flush();
 
 			// 입력 스트림 설정
-			InputStream is = sock.getInputStream();
-			InputStreamReader isr = new InputStreamReader(is);
-			br = new BufferedReader(isr);
-
+			br = new BufferedReader(new InputStreamReader(sock.getInputStream(),StandardCharsets.UTF_8));
 			// 서버로부터 메시지를 받기 위한 반복문
 			String msg;
 			while ((msg = br.readLine()) != null) {
@@ -98,7 +94,7 @@ public class Client extends Thread {
 					// 내 턴 결정
 					if (my_rating < enemy_rating) {
 						isMyTurn = true;
-					} else if (playerId.compareTo(enemyID)>0) {
+					} else if (my_rating==enemy_rating && playerId.compareTo(enemyID)>0) {
 						isMyTurn = true;
 					} else {
 						isMyTurn = false;
@@ -176,10 +172,12 @@ public class Client extends Thread {
 				bw.close();
 			if (br != null)
 				br.close();
-			if (sock != null)
+			if (sock != null && !sock.isClosed())
 				sock.close();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			System.exit(0);
 		}
 	}
 
