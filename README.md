@@ -8,7 +8,7 @@ MSAFullstack 풀스택 Java 개발 과정의 "mini_socket" 미니 프로젝트
 ## 🎯 프로젝트 소개
 
 TicTacTalk은 Java Swing GUI로 구현된 1:1 실시간 틱택토 게임과 채팅이 가능한 데스크탑 애플리케이션입니다.  
-socket 통신 기반으로, 게임 로직과 메시징이 동시에 동작하며, 데이터베이스 연동을 통해 사용자 인증 및 전적 관리를 지원합니다 :contentReference[oaicite:1]{index=1}.
+socket 통신 기반으로, 게임 로직과 메시징이 동시에 동작하며, 데이터베이스 연동을 통해 사용자 인증 및 전적 관리를 지원합니다.
 
 ---
 
@@ -20,7 +20,7 @@ socket 통신 기반으로, 게임 로직과 메시징이 동시에 동작하며
   - Server ↔ Client 소켓 통신을 이용해 플레이어 2명 매칭
   - Tic-Tac-Toe 게임 로직, 승패/무승부 판정, 턴 타이머 적용
 - **실시간 채팅**
-  - 게임 중 채팅 송수신 기능 제공 :contentReference[oaicite:2]{index=2}
+  - 게임 중 채팅 송수신 기능 제공 
 - **GUI**
   - Java Swing 기반
   - CardLayout을 이용한 화면 전환
